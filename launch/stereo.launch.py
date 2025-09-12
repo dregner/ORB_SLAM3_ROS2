@@ -50,6 +50,8 @@ def generate_launch_description():
             default_value='orbslam3',
             description='PointCloud SLAM link'
         ),
+        DeclareLaunchArgument('left_image', default_value=['left/image_raw'], description='stereo left image'),
+        DeclareLaunchArgument('right_image', default_value=['right/image_raw'], description='stereo right image'),
         
         Node(
             package='orbslam3_ros2',
@@ -75,8 +77,8 @@ def generate_launch_description():
                 'frame_id': LaunchConfiguration('frame_id')
             }],
             remappings=[
-                ('camera/left', 'left/image_raw'),
-                ('camera/right', 'right/image_raw')
+                ('camera/left', LaunchConfiguration('left_image')),
+                ('camera/right', LaunchConfiguration('right_image'))
             ]
         )
     ])

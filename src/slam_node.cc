@@ -111,7 +111,7 @@ void SlamNode::PublishTrackedPointCloud(){
 
     // Lookup static transform only once
     tf2::Transform T_cam_base;
-    std::string base_frame_ = "base_link_cam";
+    std::string base_frame_ = this->get_parameter("parent_frame_id").as_string();
     std::string cam_frame_ = this->get_parameter("child_frame_id").as_string();
     try {
         auto tf_cam_to_base = tf_buffer_->lookupTransform(
