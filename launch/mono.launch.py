@@ -17,12 +17,12 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'yaml_file',
-            default_value='25red.yaml',
+            default_value='bluerov_fpv.yaml',
             description='Name of the ORB_SLAM3 YAML configuration file'
         ),
         DeclareLaunchArgument(
             'namespace',
-            default_value='SM2',
+            default_value='',
             description='Namespace of system'
         ),
         DeclareLaunchArgument(
@@ -31,14 +31,24 @@ def generate_launch_description():
             description='Rescale Image'
         ),
         DeclareLaunchArgument(
-            'namespace',
-            default_value='SM2',
-            description='Namespace of system'
+            'pangolin',
+            default_value='True',
+            description='Use the viewer'
         ),
         DeclareLaunchArgument(
-            'pangolin',
-            default_value='False',
-            description='Use the viewer'
+            'parent_frame_id',
+            default_value='base_link',
+            description='Parent link of SLAM frame'
+        ),
+        DeclareLaunchArgument(
+            'child_frame_id',
+            default_value='Passive/left_camera_link',
+            description='link of SLAM frame'
+        ),
+        DeclareLaunchArgument(
+            'frame_id',
+            default_value='orbslam3',
+            description='PointCloud SLAM link'
         ),
         
         Node(
@@ -57,9 +67,12 @@ def generate_launch_description():
                 ]),
                 LaunchConfiguration('pangolin')
             ],
-            parameters=[{'rescale': LaunchConfiguration('rescale')}],
+            parameters=[{'rescale': LaunchConfiguration('rescale'),
+                        'parent_frame_id': LaunchConfiguration('parent_frame_id'),
+                        'child_frame_id': LaunchConfiguration('child_frame_id'),
+                        'frame_id': LaunchConfiguration('frame_id')}],
             remappings=[
-                ('camera', '/SM2/left/image_raw')
+                ('camera', '/Passive/image_raw'),  # Remap the camera topic to the video frames topic
             ]
         )
     ])

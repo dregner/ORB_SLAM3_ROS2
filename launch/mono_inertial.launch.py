@@ -6,7 +6,7 @@ from launch.actions import DeclareLaunchArgument
 
 def generate_launch_description():
     return LaunchDescription([
-        DeclareLaunchArgument(
+                DeclareLaunchArgument(
             'vocabulary',
             default_value=PathJoinSubstitution([
                 FindPackageShare('orbslam3_ros2'),
@@ -17,19 +17,40 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'yaml_file',
-            default_value='25red.yaml',
+            default_value='bluerov_fpv.yaml',
             description='Name of the ORB_SLAM3 YAML configuration file'
-        ),        
+        ),
         DeclareLaunchArgument(
             'namespace',
-            default_value='SM2',
+            default_value='',
             description='Namespace of system'
         ),
         DeclareLaunchArgument(
+            'rescale',
+            default_value='False',
+            description='Rescale Image'
+        ),
+        DeclareLaunchArgument(
             'pangolin',
-            default_value="False",
+            default_value='True',
             description='Use the viewer'
         ),
+        DeclareLaunchArgument(
+            'parent_frame_id',
+            default_value='base_link',
+            description='Parent link of SLAM frame'
+        ),
+        DeclareLaunchArgument(
+            'child_frame_id',
+            default_value='Passive/left_camera_link',
+            description='link of SLAM frame'
+        ),
+        DeclareLaunchArgument(
+            'frame_id',
+            default_value='orbslam3',
+            description='PointCloud SLAM link'
+        ),
+        
 
         Node(
             package='orbslam3_ros2',
@@ -42,15 +63,20 @@ def generate_launch_description():
                 PathJoinSubstitution([
                     FindPackageShare('orbslam3_ros2'),
                     'config',  # Assuming your config files are in the config directory
-                    'monocular-inertial',
+                    'monocular',
                     LaunchConfiguration('yaml_file')  # Use the file name directly
                 ]),
                 LaunchConfiguration('pangolin')
                 
             ],
+
+            parameters=[{'rescale': LaunchConfiguration('rescale'),
+                        'parent_frame_id': LaunchConfiguration('parent_frame_id'),
+                        'child_frame_id': LaunchConfiguration('child_frame_id'),
+                        'frame_id': LaunchConfiguration('frame_id')}],
             remappings=[
-                ('camera', '/SM2/left/image_raw'),
-                ('imu', '/SM2/imu/data_raw')  # Assuming you want to remap the IMU topic as well
+                ('camera', '/Passive/image_raw'),
+                ('imu', '/mavros/imu/data_raw')  # Assuming you want to remap the IMU topic as well
             ]
         )
     ])
