@@ -46,7 +46,7 @@ int main(int argc, char **argv)
         std::cerr << "\nUsage: ros2 run orbslam stereo path_to_vocabulary path_to_settings do_rectify" << std::endl;
         return 1;
     }
-    bool visualization = false;
+    bool visualization = true;
 
     auto node = std::make_shared<rclcpp::Node>("run_slam");
 
@@ -97,6 +97,9 @@ StereoSlamNode::~StereoSlamNode()
 }
 
 void StereoSlamNode::GrabStereo(const sensor_msgs::msg::Image::SharedPtr msgLeft, const sensor_msgs::msg::Image::SharedPtr msgRight) {
+    // RCLCPP_INFO(this->get_logger(), "Encoding: %s", msgLeft->encoding.c_str());
+    // RCLCPP_INFO(this->get_logger(), "Encoding: %s", msgRight->encoding.c_str());
+
     // Copia a imagem RGB da mensagem ROS para cv::Mat
     try {
         imLeft = cv_bridge::toCvShare(msgLeft, msgLeft->encoding)->image;
@@ -113,15 +116,15 @@ void StereoSlamNode::GrabStereo(const sensor_msgs::msg::Image::SharedPtr msgLeft
         return;
     }
     
-    current_frame_time_ = now();
     if (rescale){
-
-        cv::resize(imLeft, imLeft, cv::Size(800,600), cv::INTER_LINEAR);
-        cv::resize(imRight, imRight, cv::Size(800,600), cv::INTER_LINEAR);
+        // RCLCPP_INFO(this->get_logger(), "Rescaling images to 800x600");
+        cv::resize(imLeft, imLeft, cv::Size(612,512), cv::INTER_LINEAR);
+        cv::resize(imRight, imRight, cv::Size(612,512), cv::INTER_LINEAR);
     }
-
-
+    
+    
     SE3 = m_SLAM->TrackStereo(imLeft, imRight, Utility::StampToSec(msgLeft->header.stamp));
+    current_frame_time_ = now();
     Update();
 }
 

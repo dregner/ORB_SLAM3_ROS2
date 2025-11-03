@@ -8,6 +8,7 @@
 
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/point_field.hpp"
+#include "sensor_msgs/msg/image.hpp"
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -48,6 +49,7 @@ public:
     void PublishPath();
     void PublishPose();
     void PublishTransform();
+    void TrackedImage(const cv::Mat image);
     tf2::Transform TransformFromSophus(Sophus::SE3f &pose);
 
     rclcpp::Node* node_;
@@ -74,6 +76,7 @@ private:
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pathpublisher;
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr statepublisher;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr flagpublisher;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr trackedpublisher;
 
 };
 

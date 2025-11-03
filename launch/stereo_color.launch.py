@@ -22,7 +22,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'yaml_file',
-            default_value='color_rescaled.yaml',
+            default_value='color.yaml',
             description='Name of the ORB_SLAM3 YAML configuration file'
         ),
         DeclareLaunchArgument(

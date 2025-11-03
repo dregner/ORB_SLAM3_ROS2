@@ -9,6 +9,7 @@ SlamNode::SlamNode(ORB_SLAM3::System* pSLAM, rclcpp::Node* node)
     posepublisher = this->create_publisher<geometry_msgs::msg::PoseStamped>("pose", 10);
     statepublisher = this->create_publisher<std_msgs::msg::String>("state", 10);
     flagpublisher = this->create_publisher<std_msgs::msg::Bool>("flag", 10);
+    trackedpublisher = this->create_publisher<sensor_msgs::msg::Image>("tracked_image", 10);
 
     tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
@@ -17,6 +18,7 @@ SlamNode::SlamNode(ORB_SLAM3::System* pSLAM, rclcpp::Node* node)
     this->declare_parameter("frame_id", "orbslam3");
     this->declare_parameter("parent_frame_id", "SM2/base_link");
     this->declare_parameter("child_frame_id", "SM2/left_camera_link");
+    this->declare_parameter("tracked_points", false);
 
 }
 SlamNode::~SlamNode() {
@@ -62,6 +64,20 @@ void SlamNode::Update(){
     PublishTrackedPointCloud();
     PublishPose();
     PublishPath();
+
+}
+
+void SlamNode::TrackedImage(const cv::Mat image){
+    bool tracked_image = this->get_parameter("tracked_points").as_bool();
+
+    if (tracked_image){
+        sensor_msgs::msg::Image imgmsg;
+        std::vector<cv::KeyPoint> keypoints = m_SLAM->GetTrackedKeyPointsUn();
+        cv::drawKeypoints(image, keypoints, image,cv::Scalar(0,255,0), cv::DrawMatchesFlags::DEFAULT);
+        cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", image).toImageMsg(imgmsg);
+
+        trackedpublisher->publish(imgmsg);
+    }
 }
 
 void SlamNode::PublishTrackedPointCloud(){
