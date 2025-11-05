@@ -36,6 +36,7 @@
 #include "Map.h"
 #include "Tracking.h"
 #include "utility.hpp"
+#include "std_srvs/srv/trigger.hpp"
 
 class SlamNode : public rclcpp::Node
 {
@@ -50,9 +51,12 @@ public:
     void PublishPose();
     void PublishTransform();
     void TrackedImage(const cv::Mat image);
+    void handleReset( const std::shared_ptr<std_srvs::srv::Trigger::Request> request, std::shared_ptr<std_srvs::srv::Trigger::Response> response); 
     tf2::Transform TransformFromSophus(Sophus::SE3f &pose);
 
     rclcpp::Node* node_;
+    static const tf2::Matrix3x3 tf_orb_to_ros_enu;
+    static const tf2::Matrix3x3 tf_orb_to_ros_default;
 
 protected:
     // using ImageMsg = sensor_msgs::msg::Image;
@@ -77,6 +81,7 @@ private:
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr statepublisher;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr flagpublisher;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr trackedpublisher;
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr resetservice;
 
 };
 

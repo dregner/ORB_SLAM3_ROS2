@@ -1,5 +1,16 @@
 #include "slam_node.hpp"
 
+// Define static const matrices declared in header
+const tf2::Matrix3x3 SlamNode::tf_orb_to_ros_default(
+    1.0, 0.0, 0.0,   // row 0
+    0.0, 1.0, 0.0,   // row 1
+    0.0, 0.0, 1.0);  // row 2
+
+const tf2::Matrix3x3 SlamNode::tf_orb_to_ros_enu(
+    0.0, 0.0, 1.0,   // row 0
+   -1.0, 0.0, 0.0,   // row 1
+    0.0,-1.0, 0.0);  // row 2
+
 SlamNode::SlamNode(ORB_SLAM3::System* pSLAM, rclcpp::Node* node)
 : Node("ORB_SLAM3_Inertial"), m_SLAM(pSLAM), node_(node)
 {
@@ -11,6 +22,8 @@ SlamNode::SlamNode(ORB_SLAM3::System* pSLAM, rclcpp::Node* node)
     flagpublisher = this->create_publisher<std_msgs::msg::Bool>("flag", 10);
     trackedpublisher = this->create_publisher<sensor_msgs::msg::Image>("tracked_image", 10);
 
+    resetservice = this->create_service<std_srvs::srv::Trigger>("reset", std::bind(&SlamNode::handleReset, this, std::placeholders::_1, std::placeholders::_2));
+
     tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
     tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
@@ -19,11 +32,18 @@ SlamNode::SlamNode(ORB_SLAM3::System* pSLAM, rclcpp::Node* node)
     this->declare_parameter("parent_frame_id", "SM2/base_link");
     this->declare_parameter("child_frame_id", "SM2/left_camera_link");
     this->declare_parameter("tracked_points", false);
+    this->declare_parameter("ENU_publish", false);
 
 }
 SlamNode::~SlamNode() {
     // Para todas as threads
     m_SLAM->Shutdown();
+}
+void SlamNode::handleReset(const std::shared_ptr<std_srvs::srv::Trigger::Request> request, std::shared_ptr<std_srvs::srv::Trigger::Response> response){
+    m_SLAM->Reset();
+    m_SLAM->ResetActiveMap();
+    response->success = true;
+    response->message = "SLAM reseted";
 }
 void SlamNode::Update(){
     current_frame_time_ = now();
@@ -342,6 +362,7 @@ void SlamNode::PublishTransform()
             initial_map_base_offset_.setIdentity();
             initial_map_base_offset_.setOrigin(T_cam_base.getOrigin());
             initial_offset_set_ = true;
+            RCLCPP_INFO(this->get_logger(), "Publishing transform as ENU: %s", this->get_parameter("ENU_publish").as_bool() ? "true" : "false");
         }
 
         // Apply the offset so that base_link starts at (0,0,0) in map
@@ -366,6 +387,7 @@ void SlamNode::PublishTransform()
 tf2::Transform SlamNode::TransformFromSophus(Sophus::SE3f &pose)
 {
     // Convert pose to double precision for tf2 compatibility
+    bool enu_pub = this->get_parameter("ENU_publish").as_bool();
     Eigen::Matrix3d rotation = pose.rotationMatrix().cast<double>();
     Eigen::Vector3d translation = pose.translation().cast<double>();
 
@@ -376,15 +398,30 @@ tf2::Transform SlamNode::TransformFromSophus(Sophus::SE3f &pose)
     tf2::Vector3 tf_camera_translation(
         translation(0), translation(1), translation(2));
 
-   // Coordinate transformation matrix: ORB to ROS
-    static const tf2::Matrix3x3 tf_orb_to_ros(  1, 0, 0,    // ORB X -> ROS X
-                                                0, 1, 0,    // ORB Y -> ROS Y
-                                                0, 0, 1 ); // ORB Z -> ROS Z
-                                            
+    // choose static mapping matrix
+    const tf2::Matrix3x3 &tf_orb_to_ros = enu_pub ? SlamNode::tf_orb_to_ros_enu : SlamNode::tf_orb_to_ros_default;
+
+    // Log chosen matrix
+    tf2::Vector3 r0 = tf_orb_to_ros.getRow(0);
+    tf2::Vector3 r1 = tf_orb_to_ros.getRow(1);
+    tf2::Vector3 r2 = tf_orb_to_ros.getRow(2);
+    // RCLCPP_INFO(this->get_logger(), "tf_orb_to_ros (ENU_publish=%s):\n[ %f %f %f ]\n[ %f %f %f ]\n[ %f %f %f ]",
+    //             enu_pub ? "true" : "false",
+    //             r0.x(), r0.y(), r0.z(),
+    //             r1.x(), r1.y(), r1.z(),
+    //             r2.x(), r2.y(), r2.z());
 
     // Transform from orb coordinate system to ros coordinate system on camera coordinates
     tf_camera_rotation = tf_orb_to_ros * tf_camera_rotation;
     tf_camera_translation = tf_orb_to_ros * tf_camera_translation;
+
+    //Inverse matrix
+    tf_camera_rotation = tf_camera_rotation.transpose();
+    tf_camera_translation = (tf_camera_rotation*tf_camera_translation);
+
+    //Transform from orb coordinate system to ros coordinate system on map coordinates
+    tf_camera_rotation = tf_orb_to_ros*tf_camera_rotation;
+    tf_camera_translation = tf_orb_to_ros*tf_camera_translation;
 
     // Return the final tf2::Transform
     return tf2::Transform(tf_camera_rotation, tf_camera_translation);

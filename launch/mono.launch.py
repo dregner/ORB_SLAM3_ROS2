@@ -47,8 +47,13 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'frame_id',
-            default_value='orbslam3',
+            default_value='map',
             description='PointCloud SLAM link'
+        ),
+        DeclareLaunchArgument(
+            'ENU_publish',
+            default_value='False',
+            description='Publish poses in ENU frame'
         ),
         
         Node(
@@ -70,9 +75,11 @@ def generate_launch_description():
             parameters=[{'rescale': LaunchConfiguration('rescale'),
                         'parent_frame_id': LaunchConfiguration('parent_frame_id'),
                         'child_frame_id': LaunchConfiguration('child_frame_id'),
-                        'frame_id': LaunchConfiguration('frame_id')}],
+                        'frame_id': LaunchConfiguration('frame_id'),
+                        'ENU_publish': LaunchConfiguration('ENU_publish')}],
             remappings=[
                 ('camera', '/Passive/image_raw'),  # Remap the camera topic to the video frames topic
+                #('pose', '/mavros/vision_pose/pose'),
             ]
         )
     ])
