@@ -87,16 +87,31 @@ void SlamNode::Update(){
 
 }
 
-void SlamNode::TrackedImage(const cv::Mat image){
+void SlamNode::TrackedImage(const cv::Mat image) {
+    // 1. INPUT CHECK: If the source image is empty, stop immediately.
+    if (image.empty()) {
+        return; 
+    }
+
     bool tracked_image = this->get_parameter("tracked_points").as_bool();
 
-    if (tracked_image){
-        sensor_msgs::msg::Image imgmsg;
+    if (tracked_image) {
         std::vector<cv::KeyPoint> keypoints = m_SLAM->GetTrackedKeyPointsUn();
-        cv::drawKeypoints(image, keypoints, image,cv::Scalar(0,255,0), cv::DrawMatchesFlags::DEFAULT);
-        cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", image).toImageMsg(imgmsg);
+        
+        cv::Mat out_image;
+        
+        // Draw keypoints. If 'image' is Mono8, 'out_image' becomes BGR automatically.
+        cv::drawKeypoints(image, keypoints, out_image, cv::Scalar(0, 255, 0), cv::DrawMatchesFlags::DEFAULT);
 
-        trackedpublisher->publish(imgmsg);
+        // 2. OUTPUT CHECK: Ensure the result has data before publishing
+        if (!out_image.empty()) {
+            sensor_msgs::msg::Image imgmsg;
+            // Note: Ideally, pass the original message header here so timestamps match
+            cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", out_image).toImageMsg(imgmsg);
+            trackedpublisher->publish(imgmsg);
+        } else {
+             RCLCPP_WARN(this->get_logger(), "TrackedImage: Resulting image was empty.");
+        }
     }
 }
 
@@ -118,7 +133,7 @@ void SlamNode::PublishTrackedPointCloud(){
     }
     
     pointcloudmsg.header.stamp = current_frame_time_;
-    pointcloudmsg.header.frame_id = "orbslam3";
+    pointcloudmsg.header.frame_id = "orbslam3";// this->get_parameter("frame_id").as_string();
     pointcloudmsg.height = 1;
     pointcloudmsg.width = count;
     pointcloudmsg.is_dense = true;
@@ -208,7 +223,7 @@ void SlamNode::PublishCurrentPointCloud(){
     }
     
     pointcloudmsg.header.stamp = current_frame_time_;
-    pointcloudmsg.header.frame_id = this->get_parameter("frame_id").as_string();
+    pointcloudmsg.header.frame_id = "orbslam3";//this->get_parameter("frame_id").as_string();
     pointcloudmsg.height = 1;
     pointcloudmsg.width = count;
     pointcloudmsg.is_dense = true;

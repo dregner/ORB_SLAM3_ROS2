@@ -1,0 +1,95 @@
+%YAML:1.0
+
+#--------------------------------------------------------------------------------------------
+# Camera Parameters.
+# Calibrated via MATLAB (640x360) - RECTIFIED MODE
+#--------------------------------------------------------------------------------------------
+File.version: "1.0"
+
+Camera.type: "PinHole"
+
+# Camera resolution (Matches your MATLAB data and current Camera output)
+Camera.width: 640
+Camera.height: 360
+
+# Camera frames per second
+Camera.fps: 30
+
+# Color order (Ignored for grayscale)
+Camera.RGB: 0
+
+# Stereo baseline * focal length (bf)
+# Calculated: Baseline (0.0951m) * Camera1.fx (330.8443)
+Camera.bf: 31.4638
+
+# Stereo Depth threshold.
+Stereo.ThDepth: 40.0
+
+#--------------------------------------------------------------------------------------------
+# Stereo Transformation Matrix (T_c1_c2)
+# Baseline from MATLAB: 95.1018 mm = 0.0951018 m
+#--------------------------------------------------------------------------------------------
+Stereo.T_c1_c2: !!opencv-matrix
+  rows: 4
+  cols: 4
+  dt: f
+  data: [ 1.0, 0.0, 0.0, 0.0951018,
+          0.0, 1.0, 0.0, 0.0,
+          0.0, 0.0, 1.0, 0.0,
+          0.0, 0.0, 0.0, 1.0 ]
+
+#--------------------------------------------------------------------------------------------
+# LEFT Camera calibration (Camera1)
+# Values from MATLAB CameraParameters1 Screenshot
+#--------------------------------------------------------------------------------------------
+Camera1.fx: 330.8443
+Camera1.fy: 330.5322
+Camera1.cx: 318.8753
+Camera1.cy: 180.0724
+
+# Distortion parameters (MUST be 0.0 for rectified images)
+Camera1.k1: 0.0
+Camera1.k2: 0.0
+Camera1.p1: 0.0
+Camera1.p2: 0.0
+Camera1.k3: 0.0
+
+#--------------------------------------------------------------------------------------------
+# RIGHT Camera calibration (Camera2)
+# Values from MATLAB CameraParameters2 Screenshot
+#--------------------------------------------------------------------------------------------
+Camera2.fx: 330.5915
+Camera2.fy: 330.4163
+Camera2.cx: 319.1652
+Camera2.cy: 180.5183
+
+# Distortion parameters (MUST be 0.0 for rectified images)
+Camera2.k1: 0.0
+Camera2.k2: 0.0
+Camera2.p1: 0.0
+Camera2.p2: 0.0
+Camera2.k3: 0.0
+
+#--------------------------------------------------------------------------------------------
+# ORB Parameters
+#--------------------------------------------------------------------------------------------
+ORBextractor.nFeatures: 1200
+ORBextractor.scaleFactor: 1.2
+ORBextractor.nLevels: 8
+ORBextractor.iniThFAST: 20
+ORBextractor.minThFAST: 7
+
+#--------------------------------------------------------------------------------------------
+# Viewer Parameters
+#--------------------------------------------------------------------------------------------
+Viewer.KeyFrameSize: 0.05
+Viewer.KeyFrameLineWidth: 1.0
+Viewer.GraphLineWidth: 0.9
+Viewer.PointSize: 2.0
+Viewer.CameraSize: 0.08
+Viewer.CameraLineWidth: 3.0
+Viewer.ViewpointX: 0.0
+Viewer.ViewpointY: -0.7
+Viewer.ViewpointZ: -1.8
+Viewer.ViewpointF: 500.0
+Viewer.imageViewScale: 1.0

@@ -17,22 +17,26 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'pangolin',
-            default_value="False",
+            default_value='True',
             description='Use the viewer'
         ),
         DeclareLaunchArgument(
             'yaml_file',
-            default_value='stereo_realsense.yaml',
-            description='YAML config file for RealSense D455'
+            # !!! IMPORTANT !!!
+            # This must be a YAML file calibrated for the
+            # D455's INFRARED (infra1/infra2) stereo sensors,
+            # NOT the color camera.
+            default_value='realsense_stereo_infra.yaml',
+            description='Name of the ORB_SLAM3 YAML configuration file'
         ),
         DeclareLaunchArgument(
             'namespace',
-            default_value='VORIS/SM2',
-            description='Namespace of the RealSense camera'
+            default_value='SM2',
+            description='Namespace of system'
         ),
         DeclareLaunchArgument(
             'rescale',
-            default_value='True',
+            default_value='false',
             description='Rescale Image'
         ),
         DeclareLaunchArgument(
@@ -42,15 +46,16 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'parent_frame_id',
-            default_value='VORIS/SM2/base_link',
+            default_value='camera_link',
             description='parent_frame_id'
         ),
         DeclareLaunchArgument(
             'child_frame_id',
-            default_value='VORIS/SM2/left_camera_link',
+            default_value='camera_infra1_optical_frame',
             description='child_frame_id'
         ),
 
+        
         Node(
             package='orbslam3_ros2',
             executable='stereo',
@@ -73,14 +78,15 @@ def generate_launch_description():
                 {'frame_id': LaunchConfiguration('frame_id')},
                 {'parent_frame_id': LaunchConfiguration('parent_frame_id')},
                 {'child_frame_id': LaunchConfiguration('child_frame_id')}
-            ],
+                ],
             remappings=[
-                # Ajustado aos tópicos exatos da RealSense sob /VORIS/SM2
-                ('camera/left/image_raw', '/VORIS/SM2/infra1/image_rect_raw'),
-                ('camera/right/image_raw', '/VORIS/SM2/infra2/image_rect_raw'),
-                ('camera/left/camera_info', '/VORIS/SM2/infra1/camera_info'),
-                ('camera/right/camera_info', '/VORIS/SM2/infra2/camera_info'),
+                # Map the node's internal 'camera/left' topic to the
+                # RealSense's rectified infra1 image stream.
+                ('camera/left', '/VORIS/SM2/infra1/image_rect_raw'),
+                
+                # Map the node's internal 'camera/right' topic to the
+                # RealSense's rectified infra2 image stream.
+                ('camera/right', '/VORIS/SM2/infra2/image_rect_raw')
             ]
         )
     ])
-
