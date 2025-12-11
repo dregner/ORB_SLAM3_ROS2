@@ -56,7 +56,7 @@ def generate_launch_description():
             description='Publish poses in ENU frame'
         ),
         DeclareLaunchArgument('tracked_points', default_value='False', description='Publish tracked points?'),
-        
+        DeclareLaunchArgument('pose', default_value='pose', description='Pose topic name'),
         DeclareLaunchArgument('left_image', default_value=['left/image_raw'], description='stereo left image'),
         DeclareLaunchArgument('right_image', default_value=['right/image_raw'], description='stereo right image'),
         
@@ -87,7 +87,8 @@ def generate_launch_description():
             }],
             remappings=[
                 ('camera/left', LaunchConfiguration('left_image')),
-                ('camera/right', LaunchConfiguration('right_image'))
+                ('camera/right', LaunchConfiguration('right_image')),
+                ('pose', LaunchConfiguration('pose'))
             ]
         )
     ])
