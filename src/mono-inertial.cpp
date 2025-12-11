@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     pSLAM_global = &pSLAM; // Atribui à variável global
 
     std::shared_ptr<MonoInertialNode> slam_ros;
-    slam_ros = std::make_shared<MonoInertialNode>(&pSLAM, node.get());
+    auto slam_node = std::make_shared<MonoInertialNode>(&pSLAM, node.get());
     std::cout << "============================" << std::endl;
 
     // Configura o handler para salvar dados no shutdown
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
         pSLAM.Shutdown();
     });
 
-    rclcpp::spin(slam_ros->get_node_base_interface());
+    rclcpp::spin(slam_node);
     rclcpp::shutdown();
 
     return 0;
@@ -69,8 +69,13 @@ int main(int argc, char **argv)
 MonoInertialNode::MonoInertialNode(ORB_SLAM3::System *pSLAM, rclcpp::Node* node) :
     SlamNode(pSLAM, node)
 {
-    subImu_ = this->create_subscription<sensor_msgs::msg::Imu>("imu", 100, std::bind(&MonoInertialNode::GrabImu, this, _1));
-    subImg_ = this->create_subscription<sensor_msgs::msg::Image>("camera", 10, std::bind(&MonoInertialNode::GrabImage, this, _1));
+    auto imu_qos_profile = rclcpp::SensorDataQoS();
+    auto img_qos_profile = rclcpp::SensorDataQoS();
+    imu_qos_profile.keep_last(100);
+    img_qos_profile.keep_last(10);
+
+    subImu_ = this->create_subscription<sensor_msgs::msg::Imu>("imu", imu_qos_profile, std::bind(&MonoInertialNode::GrabImu, this, _1));
+    subImg_ = this->create_subscription<sensor_msgs::msg::Image>("camera", img_qos_profile, std::bind(&MonoInertialNode::GrabImage, this, _1));
 
     syncThread_ = new std::thread(&MonoInertialNode::SyncWithImu, this);
 

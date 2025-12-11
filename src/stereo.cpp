@@ -53,8 +53,8 @@ int main(int argc, char **argv)
     ORB_SLAM3::System pSLAM(argv[1], argv[2], ORB_SLAM3::System::STEREO, visualization);
     pSLAM_global = &pSLAM; // Atribui à variável global
 
-    std::shared_ptr<StereoSlamNode> slam_ros;
-    slam_ros = std::make_shared<StereoSlamNode>(&pSLAM, node.get(), argv[2], argv[3]);
+    // std::shared_ptr<StereoSlamNode> slam_ros;
+    auto slam_node = std::make_shared<StereoSlamNode>(&pSLAM, node.get(), argv[2], argv[3]);
     std::cout << "============================ " << std::endl;
 
     // Configura o handler para salvar dados no shutdown
@@ -63,15 +63,12 @@ int main(int argc, char **argv)
         pSLAM.Shutdown();
     });
 
-    rclcpp::spin(slam_ros->node_->get_node_base_interface());
+    // rclcpp::spin(slam_node->node_->get_node_base_interface());
+    rclcpp::spin(slam_node);
     rclcpp::shutdown();
 
-    return EXIT_SUCCESS;
+    return 0;
 }
-
-
-
-
 
 
 StereoSlamNode::StereoSlamNode(ORB_SLAM3::System* pSLAM, rclcpp::Node* node, const std::string &strSettingsFile, const std::string &strDoRectify)
@@ -84,8 +81,8 @@ StereoSlamNode::StereoSlamNode(ORB_SLAM3::System* pSLAM, rclcpp::Node* node, con
 
 
     // Cria os subscritores usando o nó passado
-    left_sub = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(node, "camera/left");
-    right_sub = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(node, "camera/right");
+    left_sub = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(this, "camera/left");
+    right_sub = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(this, "camera/right");
 
     // Sincroniza os subscritores
     syncApproximate = std::make_shared<message_filters::Synchronizer<approximate_sync_policy>>(approximate_sync_policy(10), *left_sub, *right_sub);
@@ -97,6 +94,9 @@ StereoSlamNode::~StereoSlamNode()
 }
 
 void StereoSlamNode::GrabStereo(const sensor_msgs::msg::Image::SharedPtr msgLeft, const sensor_msgs::msg::Image::SharedPtr msgRight) {
+    // RCLCPP_INFO(this->get_logger(), "Encoding: %s", msgLeft->encoding.c_str());
+    // RCLCPP_INFO(this->get_logger(), "Encoding: %s", msgRight->encoding.c_str());
+
     // Copia a imagem RGB da mensagem ROS para cv::Mat
     try {
         imLeft = cv_bridge::toCvShare(msgLeft, msgLeft->encoding)->image;
@@ -113,16 +113,17 @@ void StereoSlamNode::GrabStereo(const sensor_msgs::msg::Image::SharedPtr msgLeft
         return;
     }
     
-    current_frame_time_ = now();
     if (rescale){
-
+        // RCLCPP_INFO(this->get_logger(), "Rescaling images to 800x600");
         cv::resize(imLeft, imLeft, cv::Size(800,600), cv::INTER_LINEAR);
         cv::resize(imRight, imRight, cv::Size(800,600), cv::INTER_LINEAR);
     }
-
-
+    
+    
     SE3 = m_SLAM->TrackStereo(imLeft, imRight, Utility::StampToSec(msgLeft->header.stamp));
+    current_frame_time_ = now();
     Update();
+    TrackedImage(imLeft);
 }
 
 

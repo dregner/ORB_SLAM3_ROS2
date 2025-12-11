@@ -16,24 +16,24 @@ def generate_launch_description():
             description='Path to the ORB_SLAM3 vocabulary file'
         ),
         DeclareLaunchArgument(
+            'pangolin',
+            default_value="False",
+            description='Use the viewer'
+        ),
+        DeclareLaunchArgument(
             'yaml_file',
-            default_value='bluerov_fpv.yaml',
+            default_value='stereo_bluerov.yaml',
             description='Name of the ORB_SLAM3 YAML configuration file'
         ),
         DeclareLaunchArgument(
             'namespace',
-            default_value='',
+            default_value='Passive',
             description='Namespace of system'
         ),
         DeclareLaunchArgument(
             'rescale',
-            default_value='False',
-            description='Rescale Image'
-        ),
-        DeclareLaunchArgument(
-            'pangolin',
             default_value='True',
-            description='Use the viewer'
+            description='Rescale Image'
         ),
         DeclareLaunchArgument(
             'parent_frame_id',
@@ -42,7 +42,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'child_frame_id',
-            default_value='Passive/left_camera_link',
+            default_value='Passive/left_camera_enu_link',
             description='link of SLAM frame'
         ),
         DeclareLaunchArgument(
@@ -52,34 +52,43 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'ENU_publish',
-            default_value='False',
+            default_value='True',
             description='Publish poses in ENU frame'
         ),
+        DeclareLaunchArgument('tracked_points', default_value='False', description='Publish tracked points?'),
+        DeclareLaunchArgument('pose', default_value='pose', description='Pose topic name'),
+        DeclareLaunchArgument('left_image', default_value=['left/image_raw'], description='stereo left image'),
+        DeclareLaunchArgument('right_image', default_value=['right/image_raw'], description='stereo right image'),
         
         Node(
             package='orbslam3_ros2',
-            executable='mono',
+            executable='stereo',
+            name='stereo_orbslam3',
             namespace=LaunchConfiguration('namespace'),
-            name='mono_orbslam3',
             output='screen',
             arguments=[
                 LaunchConfiguration('vocabulary'),
                 PathJoinSubstitution([
                     FindPackageShare('orbslam3_ros2'),
-                    'config',  # Assuming your config files are in the config directory
-                    'monocular',
-                    LaunchConfiguration('yaml_file')  # Use the file name directly
+                    'config',  
+                    'stereo',
+                    LaunchConfiguration('yaml_file')
                 ]),
+                'True',
                 LaunchConfiguration('pangolin')
             ],
-            parameters=[{'rescale': LaunchConfiguration('rescale'),
-                        'parent_frame_id': LaunchConfiguration('parent_frame_id'),
-                        'child_frame_id': LaunchConfiguration('child_frame_id'),
-                        'frame_id': LaunchConfiguration('frame_id'),
-                        'ENU_publish': LaunchConfiguration('ENU_publish')}],
+            parameters=[{
+                'rescale': LaunchConfiguration('rescale'),
+                'parent_frame_id': LaunchConfiguration('parent_frame_id'),
+                'child_frame_id': LaunchConfiguration('child_frame_id'),
+                'frame_id': LaunchConfiguration('frame_id'),
+                'ENU_publish': LaunchConfiguration('ENU_publish'),
+                'tracked_points': LaunchConfiguration('tracked_points')
+            }],
             remappings=[
-                ('camera', '/Passive/image_raw'),  # Remap the camera topic to the video frames topic
-                #('pose', '/mavros/vision_pose/pose'),
+                ('camera/left', LaunchConfiguration('left_image')),
+                ('camera/right', LaunchConfiguration('right_image')),
+                ('pose', LaunchConfiguration('pose'))
             ]
         )
     ])

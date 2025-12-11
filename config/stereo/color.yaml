@@ -1,0 +1,88 @@
+%YAML:1.0
+
+#--------------------------------------------------------------------------------------------
+# System config
+#--------------------------------------------------------------------------------------------
+
+# When the variables are commented, the system doesn't load a previous session or not store the current one
+
+# If the LoadFile doesn't exist, the system give a message and create a new Atlas from scratch
+#System.LoadAtlasFromFile: "Session_MH01_MH02_MH03_Stereo60_Pseudo"
+
+# The store file is created from the current session, if a file with the same name exists it is deleted
+#System.SaveAtlasToFile: "Session_MH01_MH02_MH03_Stereo60_Pseudo"
+
+
+#--------------------------------------------------------------------------------------------
+# Camera Parameters. Adjust them!
+#--------------------------------------------------------------------------------------------
+File.version: "1.0"
+
+Camera.type: "PinHole"
+
+# Left Camera calibration and distortion parameters (OpenCV)
+Camera1.fx: 319.6940
+Camera1.fy: 319.3382
+Camera1.cx: 310.9047
+Camera1.cy: 261.3872
+
+Camera1.k1: -0.2137
+Camera1.k2: 0.0964
+Camera1.k3: -0.0203
+Camera1.p1: -0.0005
+Camera1.p2: 0.0001
+
+# Right Camera calibration and distortion parameters (OpenCV)
+Camera2.fx: 319.9035
+Camera2.fy: 319.5661
+Camera2.cx: 305.4782
+Camera2.cy: 261.4176
+
+Camera2.k1: -0.2106
+Camera2.k2: 0.0931
+Camera2.k3: -0.0189
+Camera2.p1: -0.0001
+Camera2.p2: -0.0003
+
+Camera.width: 800
+Camera.height: 600
+
+Camera.fps: 60
+Camera.RGB: 1
+
+Stereo.ThDepth: 60.0
+
+Stereo.T_c1_c2: !!opencv-matrix
+  rows: 4
+  cols: 4
+  dt: f
+  data: [-0.0014407,  -0.99985778, -0.01680316, -0.06134912,
+        -0.07741968,  0.01686426, -0.99685595, -0.01465666,
+         0.99699755, -0.00013527,-0.07743296, -0.09588577,
+         0.0,          0.0,          0.0,          1.0     ]
+
+#--------------------------------------------------------------------------------------------
+# ORB Parameters
+#--------------------------------------------------------------------------------------------
+
+ORBextractor.nFeatures: 1500
+ORBextractor.scaleFactor: 1.2
+ORBextractor.nLevels: 8
+ORBextractor.iniThFAST: 20
+ORBextractor.minThFAST: 7
+
+#--------------------------------------------------------------------------------------------
+# Viewer Parameters
+#--------------------------------------------------------------------------------------------
+
+Viewer.KeyFrameSize: 0.05
+Viewer.KeyFrameLineWidth: 1.0
+Viewer.GraphLineWidth: 0.9
+Viewer.PointSize: 2.0
+Viewer.CameraSize: 0.08
+Viewer.CameraLineWidth: 3.0
+Viewer.ViewpointX: 0.0
+Viewer.ViewpointY: -0.7
+Viewer.ViewpointZ: -1.8
+Viewer.ViewpointF: 500.0
+Viewer.imageViewScale: 1.0

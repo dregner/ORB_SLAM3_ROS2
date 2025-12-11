@@ -43,7 +43,7 @@ int main(int argc, char **argv)
         std::cerr << "\nUsage: ros2 run orbslam mono path_to_vocabulary path_to_settings use_pangolin" << std::endl;
         return 1;
     }
-    bool visualization = true;
+    bool visualization = false;
 
     auto node = std::make_shared<rclcpp::Node>("run_slam");
 
@@ -104,4 +104,5 @@ void MonocularSlamNode::GrabImage(const sensor_msgs::msg::Image::SharedPtr msg)
     current_frame_time_ = now();
     SE3 = m_SLAM->TrackMonocular(img_cam, Utility::StampToSec(msg->header.stamp));
     Update();
+    TrackedImage(img_cam);
 }
