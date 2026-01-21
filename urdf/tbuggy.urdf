@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<robot name="tbuggy">
+  <link name="tbuggy/base_footprint"/>
+  <link name="tbuggy/camera_front"/>
+  <link name="tbuggy/os1/os_sensor"/>
+  <link name="tbuggy/os2/os_sensor"/>
+  <link name="tbuggy/sensor_wgs84"/>
+
+
+  <joint name="tbuggy_os2_os_sensor_joint" type="fixed">
+    <parent link="tbuggy/os1/os_sensor"/>
+    <child link="tbuggy/os2/os_sensor"/>
+    <origin xyz="-2.77748 0.523125 -0.667765" rpy="-0.011842653589793084 0.015242653589793154 -3.1189476535897933"/>
+  </joint>
+
+  <joint name="tbuggy_sensor_wgs84_joint" type="fixed">
+    <parent link="tbuggy/base_footprint"/>
+    <child link="tbuggy/sensor_wgs84"/>
+    <origin xyz="0.91 -0.08 0.0" rpy="0.0 0.0 0.0"/>
+  </joint>
+
+  <joint name="tbuggy_os1_os_sensor_joint" type="fixed">
+    <parent link="tbuggy/base_footprint"/>
+    <child link="tbuggy/os1/os_sensor"/>
+    <origin xyz="0.0 0.0 2.04735" rpy="-0.01326930000000015 0.010180100000000136 3.14159"/>
+  </joint>
+
+  <joint name="tbuggy_camera_front_joint" type="fixed">
+    <parent link="tbuggy/os2/os_sensor"/>
+    <child link="tbuggy/camera_front"/>
+    <origin xyz="-0.729 0.252 0.241" rpy="-1.5299362418216824 0.011552496636622278 -1.5975721375514866"/>
+  </joint>
+
+</robot>

@@ -78,7 +78,6 @@ MonocularSlamNode::MonocularSlamNode(ORB_SLAM3::System* pSLAM, rclcpp::Node* nod
         "camera",
         10,
         std::bind(&MonocularSlamNode::GrabImage, this, std::placeholders::_1));
-    std::cout << "slam changed" << std::endl;
 }
 
 MonocularSlamNode::~MonocularSlamNode()
@@ -92,7 +91,7 @@ void MonocularSlamNode::GrabImage(const sensor_msgs::msg::Image::SharedPtr msg)
     try
     {
         img_cam = cv_bridge::toCvShare(msg, msg->encoding)->image;
-        cv::resize(img_cam, img_cam, cv::Size(800, 600), cv::INTER_LINEAR);
+        // cv::resize(img_cam, img_cam, cv::Size(960, 540), cv::INTER_LINEAR);
     }
     catch (cv_bridge::Exception& e)
     {
