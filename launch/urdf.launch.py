@@ -10,8 +10,8 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    voris_description_dir = get_package_share_directory('voris_description')
-    urdf_file = os.path.join(voris_description_dir, 'urdf', 'tbuggy.urdf')
+    description_dir = get_package_share_directory('orbslam3_ros2')
+    urdf_file = os.path.join(description_dir, 'urdf', 'tbuggy.urdf')
 
     return LaunchDescription([
         Node(
