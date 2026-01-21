@@ -84,7 +84,7 @@ ament_target_dependencies(mono-inertial rclcpp sensor_msgs cv_bridge ORB_SLAM3 P
 install(TARGETS mono mono-inertial stereo stereo-inertial DESTINATION lib/${PROJECT_NAME})
 
 # Install launch files.
-install(DIRECTORY launch config vocabulary launch
+install(DIRECTORY launch config vocabulary urdf
  DESTINATION share/${PROJECT_NAME}/)
 
 ament_package()
