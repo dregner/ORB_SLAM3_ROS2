@@ -96,7 +96,11 @@ install(TARGETS
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
-
+# Install Python scripts
+install(PROGRAMS
+  scripts/mavlink_bridge_node.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 # install(TARGETS mono mono-inertial mono-compressed mono-inertial-compressed DESTINATION lib/${PROJECT_NAME})
 # Install launch files.
 install(DIRECTORY launch config vocabulary

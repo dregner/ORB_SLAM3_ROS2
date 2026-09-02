@@ -66,8 +66,11 @@ void SlamNode::Update(){
         }
     }
     int state_num = m_SLAM->GetTrackingState();
-    int map_id = m_SLAM->GetMapID();
     bool map_changed = m_SLAM->MapChanged();
+    static int map_id = 0;
+    if (map_changed) {
+        map_id++;
+    }
 
     orbslam3_msgs::msg::SlamStatus status_msg;
     status_msg.header.stamp = current_frame_time_;

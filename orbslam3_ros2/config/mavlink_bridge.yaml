@@ -1,0 +1,40 @@
+/**:
+  ros__parameters:
+    # MAVLink Connection Endpoint
+    # Common endpoints:
+    #   - SITL or local MAVLink router: 'udpout:127.0.0.1:14550'
+    #   - BlueOS default port:          'udpout:192.168.2.2:14550'
+    #   - Direct serial telemetry:      '/dev/ttyACM0,115200'
+    #   - Listen for incoming UDP:      'udpin:0.0.0.0:14550'
+    connection_url: 'udpout:127.0.0.1:14550'
+
+    # Bridge mode:
+    #   - 'estimate' : Sends only VISION_POSITION_ESTIMATE (#102)
+    #   - 'delta'    : Sends only VISION_POSITION_DELTA (#11011)
+    #   - 'both'     : Sends both messages
+    bridge_mode: 'both'
+
+    # ROS 2 Topics
+    pose_topic: 'pose_cov'
+    status_topic: 'slam_status'
+
+    # MAVLink IDs
+    source_system_id: 1
+    source_component_id: 197   # 197 = MAV_COMP_ID_VISUAL_INERTIAL_ODOMETRY
+    target_system_id: 1
+    target_component_id: 1
+
+    # Rate Limiting
+    # 0.0 means forward every pose produced by SLAM (usually ~20-30 Hz)
+    # Set to a positive float (e.g. 20.0) to cap rate to 20 Hz
+    publish_rate_hz: 0.0
+
+    # Heartbeat rate in Hz (1.0 is standard to keep MAVLink routing alive)
+    heartbeat_rate_hz: 1.0
+
+    # Tracking & Safety thresholds
+    min_confidence: 10.0       # Minimum % confidence to send delta messages
+    default_confidence: 100.0   # Default % confidence if no status topic available
+    max_delta_time_sec: 0.5    # Maximum time gap before resetting delta baseline
+    max_delta_dist_m: 2.0      # Maximum position jump (meters) before triggering reset_counter
+    input_is_flu: true         # Set true for ROS standard FLU (when ENU_publish is enabled in SLAM)
