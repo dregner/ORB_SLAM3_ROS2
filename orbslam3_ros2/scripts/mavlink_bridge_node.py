@@ -39,6 +39,7 @@ except ImportError:
 
 try:
     from pymavlink import mavutil
+    import pymavlink.dialects.v20.ardupilotmega as apm
 except ImportError:
     print("ERROR: pymavlink is not installed! Install via 'pip3 install pymavlink'", file=sys.stderr)
     sys.exit(1)
@@ -49,12 +50,10 @@ class MavlinkBridgeNode(Node):
         super().__init__('orbslam3_mavlink_bridge')
 
         # Declare parameters
-        self.declare_parameter('connection_url', 'udpout:127.0.0.1:14550')
+        self.declare_parameter('connection_url', 'udpin:0.0.0.0:14550') # tcp:127.0.0.1:5762
         self.declare_parameter('bridge_mode', 'both')  # 'estimate', 'delta', 'both'
-        self.declare_parameter('pose_topic', 'pose_cov')
-        self.declare_parameter('status_topic', 'slam_status')
         self.declare_parameter('source_system_id', 1)
-        self.declare_parameter('source_component_id', 197)  # MAV_COMP_ID_VISUAL_INERTIAL_ODOMETRY
+        self.declare_parameter('source_component_id', 255)  # MAV_COMP_ID_VISUAL_INERTIAL_ODOMETRY
         self.declare_parameter('target_system_id', 1)
         self.declare_parameter('target_component_id', 1)
         self.declare_parameter('publish_rate_hz', 0.0)  # 0.0 = every incoming frame
@@ -68,8 +67,6 @@ class MavlinkBridgeNode(Node):
         # Retrieve parameters
         self.connection_url = str(self.get_parameter('connection_url').value)
         self.bridge_mode = str(self.get_parameter('bridge_mode').value).lower()
-        self.pose_topic = str(self.get_parameter('pose_topic').value)
-        self.status_topic = str(self.get_parameter('status_topic').value)
         self.source_system_id = int(self.get_parameter('source_system_id').value)
         self.source_component_id = int(self.get_parameter('source_component_id').value)
         self.target_system_id = int(self.get_parameter('target_system_id').value)
@@ -125,7 +122,7 @@ class MavlinkBridgeNode(Node):
         # Pose subscriber
         self.pose_sub = self.create_subscription(
             PoseWithCovarianceStamped,
-            self.pose_topic,
+            '/Passive/slam/pose_cov',
             self.pose_callback,
             qos
         )
@@ -134,11 +131,11 @@ class MavlinkBridgeNode(Node):
         if HAS_SLAM_STATUS:
             self.status_sub = self.create_subscription(
                 SlamStatus,
-                self.status_topic,
+                '/Passive/slam/slam_status',
                 self.status_callback,
                 qos
             )
-            self.get_logger().info(f"Subscribed to status topic: {self.status_topic}")
+            self.get_logger().info(f"Subscribed to slam status topic")
         else:
             self.get_logger().warn(
                 "orbslam3_msgs.SlamStatus message not found. Confidence will use default value."
@@ -148,7 +145,6 @@ class MavlinkBridgeNode(Node):
             f"ORB-SLAM3 MAVLink Bridge initialized.\n"
             f"  Mode: {self.bridge_mode}\n"
             f"  Endpoint: {self.connection_url}\n"
-            f"  Pose Topic: {self.pose_topic}\n"
             f"  Source Component ID: {self.source_component_id}"
         )
 
@@ -159,10 +155,14 @@ class MavlinkBridgeNode(Node):
             self.mav = mavutil.mavlink_connection(
                 self.connection_url,
                 dialect='ardupilotmega',
-                source_system=self.source_system_id,
-                source_component=self.source_component_id
+                source_system=200,
+                source_component=apm.MAV_COMP_ID_VISUAL_INERTIAL_ODOMETRY
             )
             self.get_logger().info("MAVLink connection established.")
+            self.get_logger().info(f'Waiting for heartbeat on {self.connection_url}...')
+            self.mav.wait_heartbeat()
+            self.get_logger().info('Heartbeat received from system (system %u component %u)' %
+                               (self.mav.target_system, self.mav.target_component))
         except Exception as e:
             self.get_logger().error(f"Failed to connect to MAVLink ({self.connection_url}): {e}")
             self.mav = None
